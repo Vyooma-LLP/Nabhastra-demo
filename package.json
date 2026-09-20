@@ -1,0 +1,14 @@
+{
+  "name": "nabhastra-workspace",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "pnpm -F web dev",
+    "build": "pnpm -F web build",
+    "test": "pnpm -F web test",
+    "lint": "pnpm -F web lint",
+    "release:client": "echo 'Release pipeline TBD: knip -> skylos -> test -> build -> package'"
+  }
+}

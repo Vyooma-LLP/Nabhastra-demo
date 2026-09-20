@@ -1,0 +1,337 @@
+@import "tailwindcss";
+
+/*
+ * DARK VARIANT MADE CLASS-DRIVEN, for the nav bar only.
+ *
+ * Tailwind v4's default `dark:` is `@media (prefers-color-scheme: dark)`.
+ * `adaptive-notch-navigation-bar` (21st.dev, vendored verbatim in
+ * components/ui - do not edit that file) expresses its white treatment
+ * entirely through `dark:` variants (`dark:bg-zinc-200`, `dark:text-zinc-950`).
+ * Left on the media-query default, the bar's colour would depend on each
+ * visitor's OS setting rather than being white for everyone. Nothing else in
+ * this codebase uses `dark:`, so this changes nothing else.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens (Tailwind v4 CSS-first config).
+ * Per NABHASTRA_2.0_MASTER_BUILD_SPEC.md §8 Visual Design DNA and the measured
+ * reference grammar recorded in project/DESIGN.md.
+ *
+ * LOCKED: the token structure itself (names, scale steps, spacing rhythm).
+ * REVERSIBLE: the exact hex/font-family values below. Change the value, never
+ * the token name, so components never need to change when the visual direction
+ * is tuned.
+ *
+ * SIGNAL COLOUR (revised 2026-09-10, Phase 2.5 Shield AI Visual Rebase, see
+ * project/DECISIONS/2026-09-10-shield-ai-visual-rebase.md):
+ * The prior chartreuse signal colour reconciled two Nabhastra-only sources
+ * (the build spec's "signal yellow" and the logo's forest green) rather than
+ * matching Shield AI's own current accent, which authority order (DESIGN.md
+ * §1) ranks first. Shield AI's current site is black/white/neutral with a
+ * coral/rust accent used narrowly - CTA, active nav item, key marks - never as
+ * an ambient wash. Coral replaces chartreuse here with the same restraint
+ * rule: it is UI state and environment only, never a global tint on an
+ * airframe, never flooded across a page.
+ */
+@theme {
+  /* ---- Surfaces -------------------------------------------------------- */
+  /* INK = the operational world: aircraft, systems, technology, mission.
+     Measured true black, not a charcoal approximation of one: nav bar.png's
+     header samples at #010101, cards shape.png's page at #000000. The
+     original #0a0a0a read as a visibly lighter grey next to the reference. */
+  --color-ink: #030303;
+  --color-ink-raised: #121212;
+  --color-ink-panel: #1b1b1c; /* measured: active nav panel in nav bar.png */
+
+  /* PAPER = the record: evidence, documentation, specification.             */
+  /* Measured from cards shape.png - the bone dossier card on a black page.  */
+  --color-paper: #f1f0eb;
+  --color-paper-dim: #b9b6ae;
+  --color-surface-paper: #f1f0eb;
+  --color-surface-paper-dim: #e4e2db;
+
+  /* Foreground when scoped .on-paper (see the surface scope below) */
+  --color-ink-text: #101010;
+  --color-ink-text-dim: #5c5b57;
+
+  /* Generic shadcn-style aliases. Originally added for the nav bar alone
+     (`adaptive-notch-navigation-bar.tsx`'s own `bg-background
+     text-foreground`); extended 2026-09-20 for `logo-cloud-2.tsx`
+     (`efferd/logo-cloud-2`, vendored verbatim, "use the component
+     directly" - its own `bg-secondary`/`text-muted-foreground`/
+     `text-primary` classes resolve to nothing without these). Mapped onto
+     this project's own tokens rather than given independent values. */
+  --color-background: var(--color-ink);
+  --color-foreground: var(--color-paper);
+  --color-secondary: var(--color-ink-raised);
+  --color-muted-foreground: var(--color-paper-dim);
+  --color-primary: var(--color-paper);
+
+  /* ---- Signal ---------------------------------------------------------- */
+  /* Selection, active state, markers, CTA, sensor annotation. Never
+     decoration. Calibrated approximation of Shield AI's current coral/rust
+     accent (~#FF6343 family per the 2026-09-10 extraction) - re-sample from
+     live shield.ai screenshots before treating this as final; the extraction
+     is evidence, not a literal spec (DESIGN.md §1). */
+  --color-signal: #ff5a3c;
+  --color-signal-bright: #ff8161; /* peak: focus ring, live marker only */
+  --color-signal-dim: #a8402c; /* hover/pressed echo, paper-surface variant */
+
+  /* The CTA well. Measured from `shield.ai components/nav bar contact us.png`:
+     the header CTA is not an outline button, it is a filled panel in a very
+     dark warm brown with a rust hairline and always-on coral brackets. Sampled
+     at the fill centre (~#2b1512) and the border (~#7a3423). This is the only
+     place signal appears as a *surface* rather than a mark. */
+  --color-signal-well: #2b1512;
+  --color-signal-well-edge: #7a3423;
+  --color-signal-well-hover: #3a1c17;
+
+  /* The button's resting surface. Measured 2026-09-18 by zooming the reference
+     captures: LEARN MORE sits at ~#141414 on a black page, and the footer pair
+     at ~#e2e2e2 on bone. It is a FILL one step off the page, not an outlined
+     box - the fill boundary is the edge, and there is no border stroke. Scoped
+     so one class works on both surfaces; `.on-paper` overrides it below. */
+  --color-well: #141414;
+
+  /* The label that reads OUT OF a signal fill (TechnicalButton's hover
+     inversion). It is a token rather than a literal because it has to flip
+     with the surface: signal is bright coral on ink and darkened coral on
+     bone, so the text sitting on it must go dark on one and light on the
+     other. See the `.on-paper` override below. */
+  --color-signal-ink: #030303;
+
+  /* ---- Brand (added 2026-09-10, DESIGN.md §3.1a) ------------------------ */
+  /* A second, narrower accent: brand moments, selected graph relationship,
+     technical/systems indicator, the logo mark itself. Never CTA, hover-as-
+     interaction, active nav or focus - that is signal's job. Restrained
+     relative to the logo source hue (measured #3e983b, hue 118deg) rather
+     than a bright "go" green, so it never competes with signal for attention. */
+  --color-brand: #4c9450;
+  --color-brand-bright: #6bb96e; /* peak: rare, brand-moment emphasis only */
+  --color-brand-dim: #35692f; /* hover/pressed echo, paper-surface variant */
+
+  /* ---- Line ------------------------------------------------------------ */
+  --color-line: #262626; /* hairline on ink */
+  --color-line-paper: #cfcdc5; /* hairline on paper */
+
+  /* ---- Typography ------------------------------------------------------ */
+  /* Bound to next/font in app/layout.tsx. Hanken Grotesk is the closest free
+     match to the reference's humanist-geometric grotesk; IBM Plex Mono carries
+     every uppercase technical label. */
+  --font-display: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+
+  /* Editorial display scale - large steps, tight tracking at the top end */
+  --text-display-xl: 5.5rem;
+  --text-display-lg: 3.75rem;
+  --text-display-md: 2.5rem;
+  --text-display-sm: 1.75rem;
+
+  /* Technical/metadata scale - small, monospace, wide tracking */
+  --text-meta: 0.75rem;
+  --text-meta-sm: 0.6875rem;
+  --tracking-meta: 0.08em;
+  --tracking-nav: 0.14em; /* measured: nav bar.png item tracking */
+
+  /* Primary nav items. Measured from `shield.ai components/nav bar.png` at
+     2878px for a 1440pt viewport (2x): cap height ~19px source => ~13px CSS,
+     set in the mono face, uppercase, at nav tracking. See the 2026-09-18
+     decision record - this reverses the 2026-09-09 audit's reading. */
+  --text-nav: 0.8125rem;
+
+  /* ---- Spacing rhythm -------------------------------------------------- */
+  /* Widened 2026-09-18. The reference's section rhythm is not "padding", it is
+     deliberate emptiness - in `section organisation and stylish space
+     wasting.png` the content band occupies roughly the middle half of a
+     viewport-tall section and the rest is intentionally void. 8rem read as a
+     competent web page; the reference reads as an instrument panel with room
+     around each reading. */
+  --spacing-section: 10rem;
+  --spacing-section-sm: 5rem;
+  /* The void step: used where a section is meant to breathe rather than end. */
+  --spacing-void: 16rem;
+
+  /* ---- Containers ------------------------------------------------------ */
+  --container-editorial: 88rem;
+
+  /* ---- Frame language -------------------------------------------------- */
+  /* The 45deg chamfer is retired (2026-09-10, Phase 2.5): it was a
+     Nabhastra-specific invention measured from one reference composite, not
+     something Shield AI's current site does. Default shape is now a plain
+     rectangle; see DESIGN.md §5.1. --bracket survives - the corner bracket is
+     an observed Shield AI interaction affordance, not an invented geometry. */
+  --hairline: 1px;
+  /* Arm length of the L-shaped corner ticks. The ticks are ALWAYS flush on the
+     corners of whatever they bracket, sharing its exact edge - verified by
+     zooming all three button captures. An earlier pass added a standoff and
+     produced a second outline just outside the first, which read as a boxed
+     pill. There is no gap token because there is no gap. */
+  --bracket: 12px;
+
+  /* ---- Motion ---------------------------------------------------------- */
+  --ease-signal: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 200ms;
+  --duration-reveal: 700ms;
+  --duration-slow: 1200ms;
+
+  /* ---- Z-index --------------------------------------------------------- */
+  --z-base: 0;
+  --z-overlay: 10;
+  --z-nav: 50;
+  --z-menu: 60;
+
+  /* ---- Breakpoints ----------------------------------------------------- */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+}
+
+/*
+ * `animate-marquee` / `animate-marquee-vertical` for components/ui/marquee.tsx
+ * (magicui, vendored) - upstream ships these via a `tailwind.config.js`
+ * `extend.animation`/`extend.keyframes` block, which this project's
+ * Tailwind v4 CSS-first config has no equivalent entry point for.
+ *
+ * NOT registered as `--animate-*` tokens inside `@theme` above: tried first,
+ * and it silently didn't work - Tailwind appears to evaluate `@theme` custom
+ * properties at build time, and a value containing `var(--duration)` (a
+ * PER-INSTANCE runtime property the component sets via an arbitrary-value
+ * class, not a theme token) came out empty on `:root`, even though the
+ * `.animate-marquee` utility class itself was still generated referencing
+ * it. Plain, ordinary utility classes below sidestep that entirely - no
+ * theme-token indirection, just the animation shorthand with a fallback
+ * duration if `--duration` is ever unset.
+ */
+.animate-marquee {
+  animation: marquee var(--duration, 40s) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 40s) linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Surface scope. Sections that carry the record rather than the operational
+ * world opt into paper by adding .on-paper; foreground tokens flip so every
+ * primitive underneath keeps working without a variant prop.
+ */
+.on-paper {
+  background: var(--color-surface-paper);
+  color: var(--color-ink-text);
+  --color-paper: var(--color-ink-text);
+  --color-paper-dim: var(--color-ink-text-dim);
+  --color-line: var(--color-line-paper);
+  --color-signal: #a8402c; /* coral darkened for contrast on bone */
+  --color-brand: #35692f; /* green darkened for contrast on bone */
+  /* Signal is now a dark fill, so the label inside it goes light rather than
+     ink - otherwise the button's hover inversion lands dark-on-dark in the
+     footer. */
+  --color-signal-ink: #f1f0eb;
+  /* The button well, one step DARKER than bone rather than lighter than black.
+     Measured ~#e2e2e2 against the reference's own footer surface. */
+  --color-well: #e4e2db;
+}
+
+/*
+ * Colour-matches `logo-cloud-2.tsx` (`efferd/logo-cloud-2`, vendored
+ * verbatim - see that file's own doc comment) to its reference screenshot,
+ * `inspiration/collaboration.png`, sampled pixel-for-pixel (explicit
+ * direction, 2026-09-20: "match the colours perfectly. the inside box
+ * colours and the border line colours as well"):
+ *
+ *   - cell fill (`bg-background`): #0a0a0a, sampled directly (was reusing
+ *     the sitewide `--color-ink`, #030303 - close but not exact, and that
+ *     token is shared with the nav bar elsewhere, so left untouched rather
+ *     than nudged for one component).
+ *   - the alternating cell fill (`bg-secondary`): #121212 - this one
+ *     already matched exactly via `--color-ink-raised`, unchanged.
+ *   - grid/cell borders: #27272a (Tailwind's own `zinc-800`, confirmed by
+ *     sampling the reference's border pixels directly). Upstream's `border`/
+ *     `border-r`/`border-b`/`border-x` classes are BARE - width only, no
+ *     colour - which only renders zinc-800 in shadcn's own setup because
+ *     its global base layer applies `border-border` to every element.  This
+ *     project has no such reset, so bare `border` was resolving to
+ *     `currentColor` (i.e. following text colour) instead. Scoped here so
+ *     the component's own classNames stay completely unedited - the
+ *     override lives where `<LogoCloud />` is used (`app/company/page.tsx`),
+ *     not in the component file.
+ */
+.logo-cloud-scope {
+  /* `SiteHeader.tsx` wraps the whole app in a `.dark` div (originally just
+     for the nav bar's own `dark:` styling), so `dark:bg-secondary/30` -
+     upstream's actual active rule here, not the plain `bg-secondary` it
+     pairs with - is always live, and it's a translucent blend against
+     whatever sits behind it. An explicit solid fill here, matching the
+     reference's own flat "background" cells exactly, is what that blend
+     needs to land on the right final colour instead of blending against
+     this project's own (different) ink tone further up the tree. */
+  background-color: #0a0a0a;
+  --color-background: #0a0a0a;
+  /* Upstream's active rule on these cells is `dark:bg-secondary/30` - a 30%
+     translucent blend, not `--color-secondary` at full strength - so this
+     is solved backward from the measured result against the #0a0a0a fill
+     above (confirmed by rendering and re-sampling, not computed once and
+     assumed): #252525 landing here measures within a few RGB units of the
+     reference's own #121212 cells, close enough that OKLab blend rounding
+     accounts for the remainder. */
+  --color-secondary: #262626;
+}
+.logo-cloud-scope,
+.logo-cloud-scope * {
+  border-color: #27272a;
+}
+
+/* Focus is always visible and always signal-coloured. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-signal-bright);
+  outline-offset: 3px;
+}
+
+/*
+ * Motion law: motion communicates hierarchy, state, causality or connection.
+ * When the visitor asks for less, everything settles rather than degrading.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

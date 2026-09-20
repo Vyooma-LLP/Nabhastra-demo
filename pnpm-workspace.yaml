@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+allowBuilds:
+  '@ast-grep/cli': true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - ctx7@0.5.11
+  - knip@6.35.1
